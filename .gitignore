@@ -47,3 +47,13 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#RData Files
+
+Scripts/RData/*
+
+# Large raster files
+
+Data/Landcover/*
+Data/Basin/*
+Data/BCR/*
