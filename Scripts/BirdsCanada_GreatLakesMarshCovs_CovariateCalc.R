@@ -88,10 +88,6 @@ sites.local <- st_buffer(sites, 250)
 
 landcover <- rast("./Data/Landcover/glahf_land_cover_11_12_00_nlcd_solris_plo.gdb")
 
-# Replace category "1 - Great Lakes Waters" with NA as not to bias landscape metrics
-
-landcover <- classify(landcover, cbind(1, NA))
-
 sites <- st_transform(sites, crs = crs(landcover))
 sites.local <- st_transform(sites.local, crs = crs(landcover))
 
@@ -115,14 +111,14 @@ for(i in sites$stationID) {
   
   if(is.null(unique(tmp))) {
 
-    sites$percMarsh250m[sites$stationID == i] <- NA
+    sites$percWetlandAndOpenwater250m[sites$stationID == i] <- NA
     
     
   } else {
     
     lsm.tbl <- calculate_lsm(tmp, level = "class", metric = "pland")
     
-    sites$percMarsh250m[sites$stationID == i] <- ifelse(95 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 95], 0)
+    sites$percWetlandAndOpenwater250m[sites$stationID == i] <- ifelse(1 %in% lsm.tbl$class | 11 %in% lsm.tbl$class | 90 %in% lsm.tbl$class | 95 %in% lsm.tbl$class, sum(lsm.tbl$value[lsm.tbl$class %in% c(1, 11, 90, 95)]), 0)
     
   }
 
@@ -153,7 +149,7 @@ for(i in sites$stationID) {
   
   if(is.null(unique(tmp))) {
     
-    sites$percMarsh2500m[sites$stationID == i] <- NA
+    sites$percWetland2500m[sites$stationID == i] <- NA
     sites$percUrban2500m[sites$stationID == i] <- NA
     sites$percAg2500m[sites$stationID == i] <- NA
     
@@ -162,7 +158,7 @@ for(i in sites$stationID) {
     
     lsm.tbl <- calculate_lsm(tmp, level = "class", metric = "pland")
     
-    sites$percMarsh2500m[sites$stationID == i] <- ifelse(95 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 95], 0)
+    sites$percWetland2500m[sites$stationID == i] <- ifelse(90 %in% lsm.tbl$class | 95 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 95], 0)
     sites$percUrban2500m[sites$stationID == i] <- ifelse(2 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 2], 0)
     sites$percAg2500m[sites$stationID == i] <- ifelse(8 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 8], 0)
     
@@ -177,7 +173,7 @@ sites <- sites %>%
   cbind(st_coordinates(.)) %>%
   st_drop_geometry() %>%
   select(program, routeOrSite, stationOrPoint, latitude = Y, longitude = X,
-         region, basin, percMarsh250m, percMarsh2500m, percUrban2500m,
+         region, basin, percWetlandAndOpenwater250m, percWetland2500m, percUrban2500m,
          percAg2500m)
 
 write_csv(sites, "./Outputs/cwmp_glmmp_covdata.csv")
