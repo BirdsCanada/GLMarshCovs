@@ -93,19 +93,8 @@ sites.local <- st_transform(sites.local, crs = crs(landcover))
 
 for(i in sites$stationID) {
   
-  # Add a check for whether the site point falls within the raster. If it doesn't,
-  # leave that site's landcover value as NA.
-  
-  # Two options for removing sites outside of coverage - this one checks whether
-  # the value at the site point is NA, assigns NA if it is. Produces
-  # 533 NA sites.
-  #
-  # check <- extract(landcover, vect(sites[sites$stationID == i,]))
-  # 
-  # if(is.na(check[1, 2])) {
-  
   # This option checks whether the entire 250m radius is NA, assigns NA if it is.
-  # More forgiving. Produces 151 NA sites.
+  # More forgiving. Produces 0 NA sites.
   
   tmp <- mask(crop(landcover, sites.local[sites.local$stationID == i,]), sites.local[sites.local$stationID == i,])
   
@@ -134,16 +123,8 @@ sites.neighbourhood <- st_buffer(sites, 2500) %>%
 
 for(i in sites$stationID) {
   
-  # Two options for removing sites outside of coverage - this one checks whether
-  # the value at the site point is NA, assigns NA if it is. Produces
-  # 533 NA sites.
-  #
-  # check <- extract(landcover, vect(sites[sites$stationID == i,]))
-  # 
-  # if(is.na(check[1, 2])) {
-  
   # This option checks whether the entire 2500m radius is NA, assigns NA if it is.
-  # More forgiving. Produces 8 NA sites.
+  # More forgiving. Produces no NA sites.
   
   tmp <- mask(crop(landcover, sites.neighbourhood[sites.neighbourhood$stationID == i,]), sites.neighbourhood[sites.neighbourhood$stationID == i,])
   
@@ -158,7 +139,7 @@ for(i in sites$stationID) {
     
     lsm.tbl <- calculate_lsm(tmp, level = "class", metric = "pland")
     
-    sites$percWetland2500m[sites$stationID == i] <- ifelse(90 %in% lsm.tbl$class | 95 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 95], 0)
+    sites$percWetland2500m[sites$stationID == i] <- ifelse(90 %in% lsm.tbl$class | 95 %in% lsm.tbl$class, sum(lsm.tbl$value[lsm.tbl$class %in% c(90, 95)]), 0)
     sites$percUrban2500m[sites$stationID == i] <- ifelse(2 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 2], 0)
     sites$percAg2500m[sites$stationID == i] <- ifelse(8 %in% lsm.tbl$class, lsm.tbl$value[lsm.tbl$class == 8], 0)
     
